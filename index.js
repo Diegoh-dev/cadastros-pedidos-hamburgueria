@@ -13,6 +13,30 @@ const uuid = require("uuid");
 //  PEDIDOS DO CLIENTE
 let listOrderClient = [];
 
+const checkIdExist = (request, response, next) => {
+  const { id } = request.params;
+
+  const index = listOrderClient.findIndex((client) => client.id === id);
+
+  if (index < 0) {
+    return response.status(404).json({ error: "Not found" });
+  }
+
+  // RETORNA O ITEM COMPLETO DO ARRAY
+
+  const orderClient = listOrderClient.find((client) => client.id === id);
+
+  if (orderClient === undefined) {
+    return response.status(404).json({ error: "Not found" });
+  }
+
+  request.id = id;
+  request.index = index;
+  request.orderClient = orderClient;
+
+  next();
+};
+
 //  A ROTA RECEBE O PEDIDO DO CLIENTE.
 server.post("/order", (request, response) => {
   const { clientName, order, price } = request.body;
@@ -37,8 +61,10 @@ server.get("/order", (request, response) => {
 });
 
 // ROTA QUE ALTERA UM PEDIDO JÁ FEITO.
-server.put("/order/:id", (request, response) => {
-  const { id } = request.params;
+server.put("/order/:id", checkIdExist, (request, response) => {
+  const id = request.id;
+
+  const index = request.index;
 
   const { clientName, order, price } = request.body;
 
@@ -50,25 +76,13 @@ server.put("/order/:id", (request, response) => {
     status: "Em preparação",
   };
 
-  const index = listOrderClient.findIndex((client) => client.id === id);
-
-  if (index < 0) {
-    return response.status(404).json({ error: "Not found" });
-  }
-
   listOrderClient[index] = updateOrderClient;
 
   return response.json(updateOrderClient);
 });
 
-server.delete("/order/:id", (request, response) => {
-  const { id } = request.params;
-
-  const index = listOrderClient.findIndex((client) => client.id === id);
-
-  if (index < 0) {
-    return response.status(404).json({ error: "Not found" });
-  }
+server.delete("/order/:id", checkIdExist, (request, response) => {
+  const index = request.index;
 
   listOrderClient.splice(index, 1);
 
@@ -76,23 +90,15 @@ server.delete("/order/:id", (request, response) => {
 });
 
 // ROTA QUE RETORNA UM PEDIDO ESPECÍFICO.
-server.get("/order/:id", (request, response) => {
-  const { id } = request.params;
-
-  const orderClient = listOrderClient.find((client) => client.id === id);
-
-  if (orderClient === undefined) {
-    return response.status(404).json({ error: "Not found" });
-  }
+server.get("/order/:id", checkIdExist, (request, response) => {
+  const orderClient = request.orderClient;
 
   return response.json(orderClient);
 });
 
 // ALTERA O STATUS DO PEDIDO
-server.patch("/order/:id", (request, response) => {
-  const { id } = request.params;
-
-  const orderClient = listOrderClient.find((client) => client.id === id);
+server.patch("/order/:id", checkIdExist, (request, response) => {
+  const orderClient = request.orderClient;
 
   orderClient.status = "Pronto";
 
@@ -102,3 +108,31 @@ server.patch("/order/:id", (request, response) => {
 server.listen(port, () => {
   console.log(`🚩 Servidor rodando na porta ${port}`);
 });
+
+/*
+EXEMPLOS PARA FACILITAR.
+
+{
+	"clientName":"rennan",
+	"order": " 1 coca-cola", 
+	"price": 10.00
+}
+
+{
+	"clientName":"maria",
+	"order": " 1 pizza, x-tudo", 
+	"price": 40.00
+}
+
+{
+	"clientName":"anna",
+	"order": " 1 coca-cola, 2 batatas grandes", 
+	"price": 30.00
+}
+
+{
+	"clientName":"mascos",
+	"order": " 1 coca-cola, 2 pizzas", 
+	"price": 74.50
+}
+ */
