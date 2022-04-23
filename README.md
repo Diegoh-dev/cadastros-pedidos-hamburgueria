@@ -69,9 +69,9 @@ o array deve ficar assim:
 - [x] INSOMNIA
 - [x] BIBLIOTECA UUID
 
-## 🤝 Colaboradores
+## 🤝 Colaborador
 
-A seguinte pessoas Contribuiu para este projeto:
+A seguinte pessoa Contribuiu para este projeto:
 
 <table>
   <tr>
