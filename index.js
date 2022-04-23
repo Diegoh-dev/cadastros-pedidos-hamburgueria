@@ -37,6 +37,12 @@ const checkIdExist = (request, response, next) => {
   next();
 };
 
+server.use((request, response, next) => {
+  console.log(request.method);
+  console.log(request.url);
+  next();
+});
+
 //  A ROTA RECEBE O PEDIDO DO CLIENTE.
 server.post("/order", (request, response) => {
   const { clientName, order, price } = request.body;
